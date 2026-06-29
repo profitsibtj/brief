@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Weekly Giveaway Brief Generator</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --line: #d9e1ee;
+      --primary: #0057ff;
+      --primary-dark: #0041c2;
+      --soft: #eef4ff;
+      --danger: #b42318;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 28px auto;
+      display: grid;
+      grid-template-columns: minmax(320px, 440px) minmax(360px, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 26px;
+      line-height: 1.2;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .intro {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 10px 28px rgba(20, 32, 55, 0.06);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .two-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #344054;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 11px;
+      font: inherit;
+      color: var(--text);
+      background: #ffffff;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 72px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.12);
+    }
+
+    .region {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .region-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 800;
+    }
+
+    .badge {
+      min-width: 42px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: var(--soft);
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      color: #ffffff;
+      background: var(--primary);
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+    }
+
+    button.secondary {
+      color: var(--primary-dark);
+      background: var(--soft);
+      border: 1px solid #c9dcff;
+    }
+
+    button.secondary:hover {
+      background: #dfeaff;
+    }
+
+    .output {
+      white-space: pre-wrap;
+      min-height: 620px;
+      margin: 0;
+      padding: 18px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #0f172a;
+      color: #eef4ff;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.55;
+      overflow: auto;
+    }
+
+    .note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .integration {
+      border: 1px solid #b9ccf8;
+      background: #f6f9ff;
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .copied {
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 800;
+      min-height: 18px;
+    }
+
+    @media (max-width: 860px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .intro {
+        display: block;
+      }
+    }
+
+    @media (max-width: 520px) {
+      main {
+        width: min(100% - 20px, 1180px);
+        margin: 16px auto;
+      }
+
+      .two-cols {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="intro">
+      <div>
+        <h1>Weekly Giveaway Brief Generator</h1>
+        <p>Masukkan detail campaign, asset dalam bentuk teks, dan wording per region. Output brief design akan otomatis digabung menjadi satu format.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Input Campaign</h2>
+      <div class="form-grid">
+        <div class="two-cols">
+          <label>
+            Month / Theme
+            <input id="kv" value="July / Weekly Giveaway" />
+          </label>
+          <label>
+            Game
+            <input id="game" value="PUBG Mobile" />
+          </label>
+        </div>
+
+        <label>
+          Logo
+          <input id="logo" value="Unipin logo, PUBG Mobile" />
+        </label>
+
+        <label>
+          Footer
+          <input id="footer" value="UniPin MY, UniPin PH, UniPin TH" />
+        </label>
+
+        <section class="integration">
+          <label>
+            Power Automate URL untuk Auto Save ke Excel
+            <input id="flowUrl" placeholder="Paste URL flow HTTP trigger di sini" />
+          </label>
+          <p class="note">Isi sekali saja. URL akan disimpan di browser ini, lalu tombol Save to Excel akan mengirim data campaign ke workbook SharePoint.</p>
+        </section>
+
+        <section class="region">
+          <div class="region-title">
+            <span>Malaysia</span>
+            <span class="badge">MY</span>
+          </div>
+          <label>
+            Insert Asset / Logo / Image
+            <textarea id="insertMY">Product image / UC icon / Weekly giveaway visual</textarea>
+          </label>
+          <label>
+            Wording
+            <textarea id="wordingMY">3 Lucky Winner will get 10 MYR worth of UC!</textarea>
+          </label>
+        </section>
+
+        <section class="region">
+          <div class="region-title">
+            <span>Philippines</span>
+            <span class="badge">PH</span>
+          </div>
+          <label>
+            Insert Asset / Logo / Image
+            <textarea id="insertPH">Product image / UC icon / Weekly giveaway visual</textarea>
+          </label>
+          <label>
+            Wording
+            <textarea id="wordingPH">3 Lucky Winner will get 130 PHP worth of UC!</textarea>
+          </label>
+        </section>
+
+        <section class="region">
+          <div class="region-title">
+            <span>Thailand</span>
+            <span class="badge">TH</span>
+          </div>
+          <label>
+            Insert Asset / Logo / Image
+            <textarea id="insertTH">Product image / UC icon / Weekly giveaway visual</textarea>
+          </label>
+          <label>
+            Wording
+            <textarea id="wordingTH">ผู้โชคดี 3 คน จะได้รับ UC มูลค่า 75 บาท!</textarea>
+          </label>
+        </section>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Output Brief</h2>
+      <pre id="output" class="output"></pre>
+      <div class="actions">
+        <button id="copyButton" type="button">Copy Brief</button>
+        <button id="saveExcelButton" type="button">Save to Excel</button>
+        <button id="downloadButton" class="secondary" type="button">Download .txt</button>
+        <button id="csvButton" class="secondary" type="button">Download CSV Database</button>
+        <button id="resetButton" class="secondary" type="button">Reset Default</button>
+      </div>
+      <div id="status" class="copied" aria-live="polite"></div>
+      <p class="note">File ini bisa dibuka langsung di browser, atau dipakai sebagai halaman GitHub Pages.</p>
+    </section>
+  </main>
+
+  <script>
+    const defaults = {
+      kv: "July / Weekly Giveaway",
+      game: "PUBG Mobile",
+      logo: "Unipin logo, PUBG Mobile",
+      footer: "UniPin MY, UniPin PH, UniPin TH",
+      insertMY: "Product image / UC icon / Weekly giveaway visual",
+      wordingMY: "3 Lucky Winner will get 10 MYR worth of UC!",
+      insertPH: "Product image / UC icon / Weekly giveaway visual",
+      wordingPH: "3 Lucky Winner will get 130 PHP worth of UC!",
+      insertTH: "Product image / UC icon / Weekly giveaway visual",
+      wordingTH: "ผู้โชคดี 3 คน จะได้รับ UC มูลค่า 75 บาท!"
+    };
+
+    const fields = Object.keys(defaults);
+    const output = document.getElementById("output");
+    const status = document.getElementById("status");
+    const flowUrl = document.getElementById("flowUrl");
+    flowUrl.value = localStorage.getItem("giveawayBriefFlowUrl") || "";
+
+    function value(id) {
+      return document.getElementById(id).value.trim() || "-";
+    }
+
+    function buildRegion(region, insert, wording) {
+      return `${region}:\nInsert:\n${insert}\n\nWording:\n${wording}`;
+    }
+
+    function buildBrief() {
+      return [
+        "Size: Instagram Feed 1080 x 1350",
+        "",
+        `KV: ${value("kv")}`,
+        "",
+        `Logo: ${value("logo")}`,
+        "",
+        `Footer: ${value("footer")}`,
+        "",
+        "Wording",
+        "",
+        buildRegion("MY", value("insertMY"), value("wordingMY")),
+        "",
+        buildRegion("PH", value("insertPH"), value("wordingPH")),
+        "",
+        buildRegion("TH", value("insertTH"), value("wordingTH"))
+      ].join("\n");
+    }
+
+    function campaignSlug() {
+      return value("kv").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "giveaway";
+    }
+
+    function csvEscape(text) {
+      return `"${String(text).replace(/"/g, '""')}"`;
+    }
+
+    function buildCsv() {
+      const headers = [
+        "Created At",
+        "Size",
+        "KV",
+        "Game",
+        "Logo",
+        "Footer",
+        "MY Insert",
+        "MY Wording",
+        "PH Insert",
+        "PH Wording",
+        "TH Insert",
+        "TH Wording",
+        "Full Brief"
+      ];
+
+      const row = [
+        new Date().toISOString(),
+        "Instagram Feed 1080 x 1350",
+        value("kv"),
+        value("game"),
+        value("logo"),
+        value("footer"),
+        value("insertMY"),
+        value("wordingMY"),
+        value("insertPH"),
+        value("wordingPH"),
+        value("insertTH"),
+        value("wordingTH"),
+        buildBrief()
+      ];
+
+      return `${headers.map(csvEscape).join(",")}\n${row.map(csvEscape).join(",")}`;
+    }
+
+    function buildDatabasePayload() {
+      return {
+        createdAt: new Date().toISOString(),
+        size: "Instagram Feed 1080 x 1350",
+        kv: value("kv"),
+        game: value("game"),
+        logo: value("logo"),
+        footer: value("footer"),
+        myInsert: value("insertMY"),
+        myWording: value("wordingMY"),
+        phInsert: value("insertPH"),
+        phWording: value("wordingPH"),
+        thInsert: value("insertTH"),
+        thWording: value("wordingTH"),
+        fullBrief: buildBrief()
+      };
+    }
+
+    function render() {
+      output.textContent = buildBrief();
+      status.textContent = "";
+    }
+
+    function resetDefaults() {
+      fields.forEach((id) => {
+        document.getElementById(id).value = defaults[id];
+      });
+      render();
+    }
+
+    async function copyBrief() {
+      await navigator.clipboard.writeText(buildBrief());
+      status.textContent = "Brief copied.";
+    }
+
+    async function saveToExcel() {
+      const url = flowUrl.value.trim();
+
+      if (!url) {
+        status.textContent = "Paste Power Automate URL first.";
+        flowUrl.focus();
+        return;
+      }
+
+      localStorage.setItem("giveawayBriefFlowUrl", url);
+      status.textContent = "Sending to Excel...";
+
+      try {
+        await fetch(url, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(buildDatabasePayload())
+        });
+
+        status.textContent = "Sent to Excel flow. Check the SharePoint workbook.";
+      } catch (error) {
+        status.textContent = "Failed to send. Check the Power Automate URL.";
+      }
+    }
+
+    function downloadBrief() {
+      const blob = new Blob([buildBrief()], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const fileName = `${campaignSlug()}-brief.txt`;
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      status.textContent = "Brief downloaded.";
+    }
+
+    function downloadCsv() {
+      const blob = new Blob([buildCsv()], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${campaignSlug()}-database-row.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      status.textContent = "CSV database row downloaded.";
+    }
+
+    fields.forEach((id) => {
+      document.getElementById(id).addEventListener("input", render);
+    });
+
+    flowUrl.addEventListener("input", () => {
+      localStorage.setItem("giveawayBriefFlowUrl", flowUrl.value.trim());
+    });
+
+    document.getElementById("copyButton").addEventListener("click", copyBrief);
+    document.getElementById("saveExcelButton").addEventListener("click", saveToExcel);
+    document.getElementById("downloadButton").addEventListener("click", downloadBrief);
+    document.getElementById("csvButton").addEventListener("click", downloadCsv);
+    document.getElementById("resetButton").addEventListener("click", resetDefaults);
+
+    render();
+  </script>
+</body>
+</html>
