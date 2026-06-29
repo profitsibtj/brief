@@ -244,20 +244,14 @@
     <section class="panel">
       <h2>Input Campaign</h2>
       <div class="form-grid">
-        <div class="two-cols">
-          <label>
-            Month / Theme
-            <input id="kv" value="July / Weekly Giveaway" />
-          </label>
-          <label>
-            Game
-            <input id="game" value="PUBG Mobile" />
-          </label>
-        </div>
+        <label>
+          Month/Theme
+          <input id="kv" placeholder="Month/Theme" />
+        </label>
 
         <label>
           Logo
-          <input id="logo" value="Unipin logo, PUBG Mobile" />
+          <input id="logo" value="UniPin Logo" />
         </label>
 
         <label>
@@ -279,12 +273,12 @@
             <span class="badge">MY</span>
           </div>
           <label>
-            Insert Asset / Logo / Image
-            <textarea id="insertMY">Product image / UC icon / Weekly giveaway visual</textarea>
+            Insert Asset/Logo/Image
+            <textarea id="insertMY" placeholder="Details"></textarea>
           </label>
           <label>
             Wording
-            <textarea id="wordingMY">3 Lucky Winner will get 10 MYR worth of UC!</textarea>
+            <textarea id="wordingMY" placeholder="Wording"></textarea>
           </label>
         </section>
 
@@ -294,12 +288,12 @@
             <span class="badge">PH</span>
           </div>
           <label>
-            Insert Asset / Logo / Image
-            <textarea id="insertPH">Product image / UC icon / Weekly giveaway visual</textarea>
+            Insert Asset/Logo/Image
+            <textarea id="insertPH" placeholder="Details"></textarea>
           </label>
           <label>
             Wording
-            <textarea id="wordingPH">3 Lucky Winner will get 130 PHP worth of UC!</textarea>
+            <textarea id="wordingPH" placeholder="Wording"></textarea>
           </label>
         </section>
 
@@ -309,12 +303,12 @@
             <span class="badge">TH</span>
           </div>
           <label>
-            Insert Asset / Logo / Image
-            <textarea id="insertTH">Product image / UC icon / Weekly giveaway visual</textarea>
+            Insert Asset/Logo/Image
+            <textarea id="insertTH" placeholder="Details"></textarea>
           </label>
           <label>
             Wording
-            <textarea id="wordingTH">ผู้โชคดี 3 คน จะได้รับ UC มูลค่า 75 บาท!</textarea>
+            <textarea id="wordingTH" placeholder="Wording"></textarea>
           </label>
         </section>
       </div>
@@ -337,16 +331,21 @@
 
   <script>
     const defaults = {
-      kv: "July / Weekly Giveaway",
-      game: "PUBG Mobile",
-      logo: "Unipin logo, PUBG Mobile",
+      kv: "",
+      logo: "UniPin Logo",
       footer: "UniPin MY, UniPin PH, UniPin TH",
-      insertMY: "Product image / UC icon / Weekly giveaway visual",
-      wordingMY: "3 Lucky Winner will get 10 MYR worth of UC!",
-      insertPH: "Product image / UC icon / Weekly giveaway visual",
-      wordingPH: "3 Lucky Winner will get 130 PHP worth of UC!",
-      insertTH: "Product image / UC icon / Weekly giveaway visual",
-      wordingTH: "ผู้โชคดี 3 คน จะได้รับ UC มูลค่า 75 บาท!"
+      insertMY: "",
+      wordingMY: "",
+      insertPH: "",
+      wordingPH: "",
+      insertTH: "",
+      wordingTH: ""
+    };
+
+    const prizes = {
+      MY: "3 Lucky Winner will get 10 MYR worth of UC!",
+      PH: "3 Lucky Winner will get 130 PHP worth of UC!",
+      TH: "ผู้โชคดี 3 คน จะได้รับ UC มูลค่า 75 บาท!"
     };
 
     const fields = Object.keys(defaults);
@@ -360,21 +359,17 @@
     }
 
     function buildRegion(region, insert, wording) {
-      return `${region}:\nInsert:\n${insert}\n\nWording:\n${wording}`;
+      return `${region}:\n\nInsert ${insert}\n\nWording: ${wording}\n\n${prizes[region]}`;
     }
 
     function buildBrief() {
       return [
         "Size: Instagram Feed 1080 x 1350",
-        "",
         `KV: ${value("kv")}`,
-        "",
         `Logo: ${value("logo")}`,
-        "",
         `Footer: ${value("footer")}`,
         "",
         "Wording",
-        "",
         buildRegion("MY", value("insertMY"), value("wordingMY")),
         "",
         buildRegion("PH", value("insertPH"), value("wordingPH")),
@@ -396,15 +391,17 @@
         "Created At",
         "Size",
         "KV",
-        "Game",
         "Logo",
         "Footer",
         "MY Insert",
         "MY Wording",
+        "MY Prize",
         "PH Insert",
         "PH Wording",
+        "PH Prize",
         "TH Insert",
         "TH Wording",
+        "TH Prize",
         "Full Brief"
       ];
 
@@ -412,15 +409,17 @@
         new Date().toISOString(),
         "Instagram Feed 1080 x 1350",
         value("kv"),
-        value("game"),
         value("logo"),
         value("footer"),
         value("insertMY"),
         value("wordingMY"),
+        prizes.MY,
         value("insertPH"),
         value("wordingPH"),
+        prizes.PH,
         value("insertTH"),
         value("wordingTH"),
+        prizes.TH,
         buildBrief()
       ];
 
@@ -432,15 +431,17 @@
         createdAt: new Date().toISOString(),
         size: "Instagram Feed 1080 x 1350",
         kv: value("kv"),
-        game: value("game"),
         logo: value("logo"),
         footer: value("footer"),
         myInsert: value("insertMY"),
         myWording: value("wordingMY"),
+        myPrize: prizes.MY,
         phInsert: value("insertPH"),
         phWording: value("wordingPH"),
+        phPrize: prizes.PH,
         thInsert: value("insertTH"),
         thWording: value("wordingTH"),
+        thPrize: prizes.TH,
         fullBrief: buildBrief()
       };
     }
