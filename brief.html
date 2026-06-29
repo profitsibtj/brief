@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Weekly Giveaway Brief Generator</title>
+  <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
   <style>
     :root {
       --bg: #f5f7fb;
@@ -291,11 +292,25 @@
         </label>
 
         <section class="integration">
+          <div class="two-cols">
+            <label>
+              Microsoft Client ID
+              <input id="clientId" placeholder="Paste Azure app client ID" />
+            </label>
+            <label>
+              Tenant
+              <input id="tenantId" value="organizations" />
+            </label>
+          </div>
           <label>
-            Power Automate URL untuk Auto Save ke Excel
-            <input id="flowUrl" placeholder="Paste URL flow HTTP trigger di sini" />
+            Excel SharePoint Link
+            <input id="excelShareUrl" placeholder="Paste link workbook Excel SharePoint" />
           </label>
-          <p class="note">Isi sekali saja. URL akan disimpan di browser ini, lalu tombol Save to Excel akan mengirim data campaign ke workbook SharePoint.</p>
+          <label>
+            Excel Table Name
+            <input id="excelTableName" value="GiveawayBriefDB" />
+          </label>
+          <p class="note">Isi sekali saja. Tombol Save to Excel akan meminta login Microsoft, lalu menambahkan row baru ke table Excel SharePoint melalui Microsoft Graph.</p>
         </section>
 
         <section class="region">
@@ -350,6 +365,7 @@
       <pre id="output" class="output"></pre>
       <div class="actions">
         <button id="copyButton" type="button">Copy Brief</button>
+        <button id="copyRowButton" type="button">Copy Excel Row</button>
         <button id="saveExcelButton" type="button">Save to Excel</button>
         <button id="downloadButton" class="secondary" type="button">Download .txt</button>
         <button id="csvButton" class="secondary" type="button">Download CSV Database</button>
@@ -391,11 +407,18 @@
     const fields = Object.keys(defaults);
     const output = document.getElementById("output");
     const status = document.getElementById("status");
-    const flowUrl = document.getElementById("flowUrl");
     const threeWinnerTab = document.getElementById("threeWinnerTab");
     const oneWinnerTab = document.getElementById("oneWinnerTab");
+    const clientId = document.getElementById("clientId");
+    const tenantId = document.getElementById("tenantId");
+    const excelShareUrl = document.getElementById("excelShareUrl");
+    const excelTableName = document.getElementById("excelTableName");
     let winnerMode = localStorage.getItem("giveawayBriefWinnerMode") || "three";
-    flowUrl.value = localStorage.getItem("giveawayBriefFlowUrl") || "";
+
+    clientId.value = localStorage.getItem("giveawayBriefClientId") || "";
+    tenantId.value = localStorage.getItem("giveawayBriefTenantId") || "organizations";
+    excelShareUrl.value = localStorage.getItem("giveawayBriefExcelShareUrl") || "";
+    excelTableName.value = localStorage.getItem("giveawayBriefExcelTableName") || "GiveawayBriefDB";
 
     function value(id) {
       return document.getElementById(id).value.trim() || "-";
@@ -492,6 +515,100 @@
       };
     }
 
+    function buildDatabaseRow() {
+      const payload = buildDatabasePayload();
+      return [
+        payload.createdAt,
+        payload.size,
+        payload.kv,
+        payload.winnerCount,
+        payload.logo,
+        payload.footer,
+        payload.myInsert,
+        payload.myWording,
+        payload.myPrize,
+        payload.phInsert,
+        payload.phWording,
+        payload.phPrize,
+        payload.thInsert,
+        payload.thWording,
+        payload.thPrize,
+        payload.fullBrief
+      ];
+    }
+
+    function buildExcelPasteRow() {
+      return buildDatabaseRow().map((cell) => String(cell).replace(/\t/g, " ").replace(/\r?\n/g, " ")).join("\t");
+    }
+
+    function rememberGraphSettings() {
+      localStorage.setItem("giveawayBriefClientId", clientId.value.trim());
+      localStorage.setItem("giveawayBriefTenantId", tenantId.value.trim() || "organizations");
+      localStorage.setItem("giveawayBriefExcelShareUrl", excelShareUrl.value.trim());
+      localStorage.setItem("giveawayBriefExcelTableName", excelTableName.value.trim() || "GiveawayBriefDB");
+    }
+
+    function encodeSharingUrl(url) {
+      const base64 = btoa(url);
+      return `u!${base64.replace(/=+$/g, "").replace(/\//g, "_").replace(/\+/g, "-")}`;
+    }
+
+    function createMsalApp() {
+      const appClientId = clientId.value.trim();
+      const appTenantId = tenantId.value.trim() || "organizations";
+
+      if (!appClientId) {
+        throw new Error("Microsoft Client ID is required.");
+      }
+
+      return new msal.PublicClientApplication({
+        auth: {
+          clientId: appClientId,
+          authority: `https://login.microsoftonline.com/${appTenantId}`,
+          redirectUri: window.location.href.split("#")[0]
+        },
+        cache: {
+          cacheLocation: "localStorage"
+        }
+      });
+    }
+
+    async function getGraphToken(msalApp) {
+      const request = { scopes: ["Files.ReadWrite"] };
+      const accounts = msalApp.getAllAccounts();
+
+      if (accounts.length > 0) {
+        try {
+          const result = await msalApp.acquireTokenSilent({ ...request, account: accounts[0] });
+          return result.accessToken;
+        } catch (error) {
+          const result = await msalApp.acquireTokenPopup(request);
+          return result.accessToken;
+        }
+      }
+
+      const login = await msalApp.loginPopup(request);
+      return login.accessToken;
+    }
+
+    async function graphFetch(path, token, options = {}) {
+      const response = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
+        ...options,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        }
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Graph request failed with ${response.status}`);
+      }
+
+      return response.status === 204 ? null : response.json();
+    }
+
     function render() {
       threeWinnerTab.classList.toggle("active", winnerMode === "three");
       oneWinnerTab.classList.toggle("active", winnerMode === "one");
@@ -517,31 +634,55 @@
       status.textContent = "Brief copied.";
     }
 
-    async function saveToExcel() {
-      const url = flowUrl.value.trim();
+    async function copyExcelRow() {
+      await navigator.clipboard.writeText(buildExcelPasteRow());
+      status.textContent = "Excel row copied. Open the first empty row in your Excel table, then press Ctrl+V.";
+    }
 
-      if (!url) {
-        status.textContent = "Paste Power Automate URL first.";
-        flowUrl.focus();
+    async function saveToExcel() {
+      const shareUrl = excelShareUrl.value.trim();
+      const tableName = excelTableName.value.trim() || "GiveawayBriefDB";
+
+      if (!shareUrl) {
+        status.textContent = "Paste Excel SharePoint link first.";
+        excelShareUrl.focus();
         return;
       }
 
-      localStorage.setItem("giveawayBriefFlowUrl", url);
-      status.textContent = "Sending to Excel...";
+      rememberGraphSettings();
+      status.textContent = "Signing in to Microsoft...";
 
       try {
-        await fetch(url, {
-          method: "POST",
-          mode: "no-cors",
+        const msalApp = createMsalApp();
+        const token = await getGraphToken(msalApp);
+        const shareId = encodeSharingUrl(shareUrl);
+
+        status.textContent = "Finding Excel workbook...";
+        const driveItem = await graphFetch(`/shares/${shareId}/driveItem`, token, {
           headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-          },
-          body: JSON.stringify(buildDatabasePayload())
+            Prefer: "redeemSharingLinkIfNecessary"
+          }
         });
 
-        status.textContent = "Sent to Excel flow. Check the SharePoint workbook.";
+        const driveId = driveItem.parentReference && driveItem.parentReference.driveId;
+        const itemId = driveItem.id;
+
+        if (!driveId || !itemId) {
+          throw new Error("Could not resolve Drive ID or Item ID from SharePoint link.");
+        }
+
+        status.textContent = "Saving row to Excel...";
+        await graphFetch(`/drives/${driveId}/items/${itemId}/workbook/tables/${encodeURIComponent(tableName)}/rows/add`, token, {
+          method: "POST",
+          body: JSON.stringify({
+            values: [buildDatabaseRow()]
+          })
+        });
+
+        status.textContent = "Saved to Excel.";
       } catch (error) {
-        status.textContent = "Failed to send. Check the Power Automate URL.";
+        status.textContent = "Failed to save. Check Microsoft app setup, Excel link, and table name.";
+        console.error(error);
       }
     }
 
@@ -576,11 +717,12 @@
       document.getElementById(id).addEventListener("input", render);
     });
 
-    flowUrl.addEventListener("input", () => {
-      localStorage.setItem("giveawayBriefFlowUrl", flowUrl.value.trim());
+    [clientId, tenantId, excelShareUrl, excelTableName].forEach((field) => {
+      field.addEventListener("input", rememberGraphSettings);
     });
 
     document.getElementById("copyButton").addEventListener("click", copyBrief);
+    document.getElementById("copyRowButton").addEventListener("click", copyExcelRow);
     threeWinnerTab.addEventListener("click", () => setWinnerMode("three"));
     oneWinnerTab.addEventListener("click", () => setWinnerMode("one"));
     document.getElementById("saveExcelButton").addEventListener("click", saveToExcel);
